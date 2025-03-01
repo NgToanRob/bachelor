@@ -44,7 +44,7 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - /dev:/dev
       - ./:/ros_ws/src/solution_packages
-
+      - /home/toan/Documents/bachelor/output:/ros_ws/output
 
 networks:
   general:
