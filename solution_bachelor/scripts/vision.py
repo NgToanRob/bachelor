@@ -20,13 +20,13 @@ def detect_lane(cv_image):
 
     # Remove inside polygons
     mask = np.zeros_like(binary)
-    pts = np.array([[260, 190], [380, 190], [415, 380], [225, 380]], np.int32).reshape((-1, 1, 2))
+    pts = np.array([[260, 150], [380, 150], [415, 380], [225, 380]], np.int32).reshape((-1, 1, 2))
     cv2.fillPoly(mask, [pts], 255)
     mask_inv = cv2.bitwise_not(mask)
     binary = cv2.bitwise_and(binary, binary, mask=mask_inv)
 
-    # Crop down y < 190 and y > 300
-    binary = binary[190:300, :]
+    # Crop down y < 150 and y > 300
+    binary = binary[150:300, :]
 
     # Morphological operations
     kernel = np.ones((5, 5), np.uint8)
@@ -60,12 +60,12 @@ def detect_lane(cv_image):
     #         col -= 1
 
     # Apply Canny edge detection
-    edges = cv2.Canny(binary_clean, threshold1=50, threshold2=190)
+    edges = cv2.Canny(binary_clean, threshold1=50, threshold2=150)
 
 
     # Hough Transform to extract lines
     rho = 2                # Độ phân giải khoảng cách (pixel)
-    theta = np.pi / 190    # Độ phân giải góc (radians)
+    theta = np.pi / 150    # Độ phân giải góc (radians)
     hough_threshold = 15   # Số phiếu tối thiểu để xác định một đường thẳng
     min_line_length = 10   # Độ dài tối thiểu của đường thẳng
     max_line_gap = 5       # Khoảng cách nối liền các đoạn đường
@@ -81,7 +81,7 @@ def detect_lane(cv_image):
             # Skip horizontal lines
             if abs(y2 - y1) < 10:
                 continue
-            cv2.line(line_image, (x1, y1 + 190), (x2, y2 + 190), (0, 0, 255), 2)
+            cv2.line(line_image, (x1, y1 + 150), (x2, y2 + 150), (0, 0, 255), 2)
 
         # Function to calculate the slope and intercept of a line
         def calculate_slope_intercept(x1, y1, x2, y2):
@@ -134,9 +134,9 @@ def detect_lane(cv_image):
 
         # Draw the extrapolated lines on the image
         if left_line is not None:
-            cv2.line(line_image, (left_line[0], left_line[1]+190), (left_line[2], left_line[3]+190), (255, 0, 0), 2)
+            cv2.line(line_image, (left_line[0], left_line[1]+150), (left_line[2], left_line[3]+150), (255, 0, 0), 2)
         if right_line is not None:
-            cv2.line(line_image, (right_line[0], right_line[1]+190), (right_line[2], right_line[3]+190), (255, 0, 0), 2)
+            cv2.line(line_image, (right_line[0], right_line[1]+150), (right_line[2], right_line[3]+150), (255, 0, 0), 2)
 
     # Initialize variables to store cumulative moving average of line parameters
     n = 20  # Number of frames to average over
@@ -173,18 +173,18 @@ def detect_lane(cv_image):
 
     # Draw the averaged extrapolated lines on the image
     if left_line_avg is not None:
-        cv2.circle(line_image, (left_line_avg[0], left_line_avg[1]+190), 5, (0, 255, 0), -1)
-        cv2.line(line_image, (left_line_avg[0], left_line_avg[1]+190), (left_line_avg[2], left_line_avg[3]+190), (0, 255, 255), 2)
+        cv2.circle(line_image, (left_line_avg[0], left_line_avg[1]+150), 5, (0, 255, 0), -1)
+        cv2.line(line_image, (left_line_avg[0], left_line_avg[1]+150), (left_line_avg[2], left_line_avg[3]+150), (0, 255, 255), 2)
     if right_line_avg is not None:
-        cv2.circle(line_image, (right_line_avg[0], right_line_avg[1]+190), 5, (0, 255, 0), -1)
-        cv2.line(line_image, (right_line_avg[0], right_line_avg[1]+190), (right_line_avg[2], right_line_avg[3]+190), (0, 255, 255), 2)
+        cv2.circle(line_image, (right_line_avg[0], right_line_avg[1]+150), 5, (0, 255, 0), -1)
+        cv2.line(line_image, (right_line_avg[0], right_line_avg[1]+150), (right_line_avg[2], right_line_avg[3]+150), (0, 255, 255), 2)
 
     # Ensure left_line_avg and right_line_avg are not None before returning
     if left_line_avg is not None and right_line_avg is not None:
-        return line_image, ((left_line_avg[0], left_line_avg[1]+190), (right_line_avg[0], right_line_avg[1]+190))
+        return line_image, ((left_line_avg[0], left_line_avg[1]+150), (right_line_avg[0], right_line_avg[1]+150))
     elif left_line_avg is None and right_line_avg is not None:
-        return line_image, ((left_line_avg[0], left_line_avg[1]+190), (right_line_avg[0], right_line_avg[1]+190))
+        return line_image, ((280, right_line_avg[1]+150), (right_line_avg[0], right_line_avg[1]+150))
     elif left_line_avg is not None and right_line_avg is None:
-        return line_image, ((left_line_avg[0], left_line_avg[1]+190), (left_line_avg[0], left_line_avg[1]+190))
+        return line_image, ((left_line_avg[0], left_line_avg[1]+150), (360, left_line_avg[1]+150))
     else:
-        return line_image, None
+        return line_image, ((320,150), (320, 150))
